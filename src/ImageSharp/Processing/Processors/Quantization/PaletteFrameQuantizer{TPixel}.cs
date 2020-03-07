@@ -16,7 +16,11 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization
         where TPixel : unmanaged, IPixel<TPixel>
     {
         private readonly ReadOnlyMemory<TPixel> palette;
-        private readonly EuclideanPixelMap<TPixel> pixelMap;
+
+        // private readonly EuclideanPixelMap<TPixel> pixelMap;
+
+        // TODO: Changed for testing kd tree implementation
+        private readonly KdTreePixelMap<TPixel> pixelMap;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PaletteFrameQuantizer{TPixel}"/> struct.
@@ -34,7 +38,7 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization
             this.Options = options;
 
             this.palette = colors;
-            this.pixelMap = new EuclideanPixelMap<TPixel>(colors);
+            this.pixelMap = new KdTreePixelMap<TPixel>(colors);
         }
 
         /// <inheritdoc/>
