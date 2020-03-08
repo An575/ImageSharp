@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing.Processors.Quantization.PaletteLookup.Brian;
 
 namespace SixLabors.ImageSharp.Processing.Processors.Quantization
 {
@@ -17,7 +18,7 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization
     {
         private readonly ReadOnlyMemory<TPixel> palette;
 
-        // private readonly EuclideanPixelMap<TPixel> pixelMap;
+        //private readonly EuclideanPixelMap<TPixel> pixelMap;
 
         // TODO: Changed for testing kd tree implementation
         private readonly KdTreePixelMap<TPixel> pixelMap;
@@ -60,7 +61,11 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization
         /// <inheritdoc/>
         [MethodImpl(InliningOptions.ShortMethod)]
         public byte GetQuantizedColor(TPixel color, ReadOnlySpan<TPixel> palette, out TPixel match)
-            => (byte)this.pixelMap.GetClosestColor(color, out match);
+        {
+            var index = (byte)this.pixelMap.GetPaletteIndex(color);
+            match = palette[index];
+            return index;
+        }
 
         /// <inheritdoc/>
         public void Dispose()

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace SixLabors.ImageSharp.Processing.Processors.Quantization
+namespace SixLabors.ImageSharp.Processing.Processors.Quantization.PaletteLookup.Brian
 {
     /// <summary>
     /// Baumstruktur für 2D Punkte. Ermöglicht effiziente Nearest-Neighbor Search
@@ -173,7 +173,7 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization
 
                 if (pointIsSmaller) // Punkt muss links eingefügt werden
                 {
-                    // Wenn der linke Knoten nicht besetzt ist, ist der aktuelle 
+                    // Wenn der linke Knoten nicht besetzt ist, ist der aktuelle
                     // Knoten der Knoten an dem der Punkt p eingefügt werden muss
                     if (tree.Left is null)
                     {
@@ -186,7 +186,7 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization
                 }
 
                 // Punkt p ist grösser und muss daher rechts eingefügt werden.
-                // Wenn der rechte Knoten nicht besetzt ist, ist der aktuelle 
+                // Wenn der rechte Knoten nicht besetzt ist, ist der aktuelle
                 // Knoten der Knoten an dem der Punkt p eingefügt werden muss
                 if (tree.Right is null)
                 {
@@ -237,7 +237,7 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization
 
             // Distanz zum bisher besten Knoten
             double bestDistSquared = Vector4.DistanceSquared(nnNode.Point.Color, p);
-            double secondBestDistSquared = Vector4.DistanceSquared(snnNode.Point.Color, p);
+            double secondBestDistSquared = double.MaxValue;
 
             // Baum nach oben gehen und nach dichteren Punkt suchen als der bisher gefundene
             bool rootReached = false;
@@ -281,7 +281,7 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization
                     splittingCoordinateDiff = currentNode.Point.Color.Z - p.Z;
                 }
 
-                if ((splittingCoordinateDiff * splittingCoordinateDiff) < bestDistSquared || (splittingCoordinateDiff * splittingCoordinateDiff) < secondBestDistSquared)
+                if ((splittingCoordinateDiff * splittingCoordinateDiff) < bestDistSquared)
                 {
                     // Split-Gerade wir geschnitten. Es könnte daher in einem Teilbaum ein besserer Knoten sein.
                     // Den Teilbaum durchsuchen, der weiter weg ist
