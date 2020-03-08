@@ -203,9 +203,8 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization.PaletteLookup.
         /// </summary>
         /// <param name="p">Punkt, dessen nähester Nachbar gefunden werden soll</param>
         /// <param name="tree">Baum in dem gesucht werden soll</param>
-        /// <param name="snnNode">Zweitbester Fund</param>
         /// <returns>nähester Nachbar</returns>
-        public static Node FindNearestNeighbour(Vector4 p, Node tree, out Node snnNode)
+        public static Node FindNearestNeighbour(Vector4 p, Node tree)
         {
             // Den Elternknoten holen
             Node parentNode = tree.Parent;
@@ -214,18 +213,13 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization.PaletteLookup.
             // auch in den Baum eingefügt werden würde
             Node nnNode = FindInsertPlace(p, tree);
 
-            // zweitbester Knoten ebenfalls initialisieren mit bester Schätzung
-            snnNode = nnNode;
-
             // Die beste Schätzung ist, das Blatt der Stelle an der p eingefügt werden müsste
             if (nnNode.Left != null)
             {
-                snnNode = nnNode;
                 nnNode = nnNode.Left;
             }
             else if (nnNode.Right != null)
             {
-                snnNode = nnNode;
                 nnNode = nnNode.Right;
             }
 
@@ -237,7 +231,6 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization.PaletteLookup.
 
             // Distanz zum bisher besten Knoten
             double bestDistSquared = Vector4.DistanceSquared(nnNode.Point.Color, p);
-            double secondBestDistSquared = double.MaxValue;
 
             // Baum nach oben gehen und nach dichteren Punkt suchen als der bisher gefundene
             bool rootReached = false;
@@ -252,18 +245,9 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization.PaletteLookup.
                 double distSquared = Vector4.DistanceSquared(currentNode.Point.Color, p);
                 if (distSquared < bestDistSquared)
                 {
-                    // bisher besten Knoten als zweitbesten Knoten speichern
-                    snnNode = nnNode;
-                    secondBestDistSquared = bestDistSquared;
-
                     // aktueller Knoten ist besser als der bisher gefundene
                     nnNode = currentNode;
                     bestDistSquared = distSquared;
-                }
-                else if (distSquared < secondBestDistSquared)
-                {
-                    snnNode = currentNode;
-                    secondBestDistSquared = distSquared;
                 }
 
                 // prüfen, ob die aktuelle Split-Gerade von einem Kreis mit dem Radius bestDistSquared geschnitten wird.
@@ -304,35 +288,14 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization.PaletteLookup.
                     // Den Teilbaum durchsuchen, der weiter weg ist
                     if (furtherTree != null)
                     {
-                        Node snnNodeSubTree;
-                        Node bestNodeInSubTree = FindNearestNeighbour(p, furtherTree, out snnNodeSubTree);
+                        Node bestNodeInSubTree = FindNearestNeighbour(p, furtherTree);
 
                         double bestDistInSubTreeSquared = Vector4.DistanceSquared(bestNodeInSubTree.Point.Color, p);
                         if (bestDistInSubTreeSquared < bestDistSquared)
                         {
-                            // bisher besten Knoten als zweitbesten Knoten speichern
-                            snnNode = nnNode;
-                            secondBestDistSquared = bestDistSquared;
-
                             // aktueller Knoten ist besser als der bisher gefundene
                             nnNode = bestNodeInSubTree;
                             bestDistSquared = bestDistInSubTreeSquared;
-                        }
-                        else if (bestDistInSubTreeSquared < secondBestDistSquared)
-                        {
-                            snnNode = bestNodeInSubTree;
-                            secondBestDistSquared = bestDistInSubTreeSquared;
-                        }
-
-                        // prüfen, ob das zweitbeste Ergebnis aus dem Teilbaum besser ist, als bisheruges zweitbestes Ergebnis.
-                        if (bestNodeInSubTree != snnNodeSubTree)
-                        {
-                            double secondBestDistSquaredSubTree = Vector4.DistanceSquared(snnNodeSubTree.Point.Color, p);
-                            if (secondBestDistSquaredSubTree < secondBestDistSquared)
-                            {
-                                snnNode = snnNodeSubTree;
-                                secondBestDistSquared = secondBestDistSquaredSubTree;
-                            }
                         }
                     }
                 }
@@ -341,7 +304,6 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization.PaletteLookup.
                 if (ReferenceEquals(currentNode.Parent, parentNode))
                 {
                     rootReached = true;
-                    //return nnNode;
                 }
 
                 // weiter nach oben gehen

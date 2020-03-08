@@ -22,10 +22,13 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization.PaletteLookup.
             this.Palette = palette;
             ReadOnlySpan<TPixel> paletteSpan = this.Palette.Span;
 
-            var points = new List<KdTree.ColorWithIndex>();
+            var originalPaletteVectors = new Vector4[palette.Length];
+            PixelOperations<TPixel>.Instance.ToVector4(Configuration.Default, palette.Span, originalPaletteVectors);
+
+            var points = new List<KdTree.ColorWithIndex>(paletteSpan.Length);
             for (int i = 0; i < paletteSpan.Length; i++)
             {
-                points.Add(new KdTree.ColorWithIndex(paletteSpan[i].ToScaledVector4(), i));
+                points.Add(new KdTree.ColorWithIndex(originalPaletteVectors[i], i));
             }
 
             this.tree = new KdTree(points);
@@ -37,7 +40,7 @@ namespace SixLabors.ImageSharp.Processing.Processors.Quantization.PaletteLookup.
         public byte GetPaletteIndex(TPixel color)
         {
             Vector4 vector = color.ToScaledVector4();
-            KdTree.Node node = KdTree.FindNearestNeighbour(vector, this.tree.Root, out KdTree.Node snnNode);
+            KdTree.Node node = KdTree.FindNearestNeighbour(vector, this.tree.Root);
             return (byte)node.Point.Index;
         }
     }
